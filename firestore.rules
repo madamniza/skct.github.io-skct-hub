@@ -1,0 +1,37 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Only the admin account may change teachers, photos and page titles.
+    function isAdmin() {
+      return request.auth != null
+        && request.auth.token.email == "g-96033445@moe-dl.edu.my";
+    }
+
+    match /config/{doc} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Anyone can add a pupil or a link; only the admin can edit or remove them.
+    match /pupils/{doc} {
+      allow read: if true;
+      allow create: if true;
+      allow update, delete: if isAdmin();
+    }
+    match /links/{doc} {
+      allow read: if true;
+      allow create: if true;
+      allow update, delete: if isAdmin();
+    }
+
+    // Pupils save their own XP; logins are add-only.
+    match /scores/{doc} {
+      allow read, write: if true;
+    }
+    match /logins/{doc} {
+      allow read: if true;
+      allow create: if true;
+    }
+  }
+}
